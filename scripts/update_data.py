@@ -61,8 +61,16 @@ def main(argv):
         except Exception as e:  # 한 종목 실패가 전체를 막지 않도록
             failed.append(t)
             print(f"{t}: 실패 - {e}", file=sys.stderr)
-    existing = sorted(p.stem for p in DATA.glob("*.json") if p.stem != "tickers")
+    existing = sorted(p.stem for p in DATA.glob("*.json") if p.stem not in ("tickers", "meta"))
     (DATA / "tickers.json").write_text(json.dumps(existing), encoding="utf-8")
+    last_dates = []
+    for t in existing:
+        rows = json.loads((DATA / f"{t}.json").read_text(encoding="utf-8"))["rows"]
+        if rows:
+            last_dates.append(rows[-1][0])
+    meta = {"lastDate": max(last_dates) if last_dates else None,
+            "updatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
+    (DATA / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
     if failed and not ok:
         sys.exit(1)
 

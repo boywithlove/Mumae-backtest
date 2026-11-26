@@ -5,210 +5,284 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>무한매수법 백테스터</title>
 <meta name="description" content="무한매수법 V4.0(실운영 로직 그대로)과 V2.2(라오어 원문)를 과거 데이터로 검증하는 백테스터">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-:root{--bg:#f5f6f8;--panel:#fff;--line:#e2e5ea;--ink:#1b1f24;--mute:#5f6875;--v4:#0e8a8c;--v22:#d9480f;--bh:#8b919a;--bad:#c92a2a;--good:#2b8a3e;--accent:#1c64f2;--band:rgba(201,42,42,.09);--chip:#eef1f5}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--panel:#171b21;--line:#2a313b;--ink:#e6e9ee;--mute:#9aa4b2;--v4:#3cc4c6;--v22:#ff8a4c;--bh:#7d8590;--bad:#ff6b6b;--good:#51cf66;--accent:#6b97ff;--band:rgba(255,107,107,.12);--chip:#20262e}}
+:root{
+  --bg:#f6f4ee;--panel:#fffdf8;--panel2:#f0ede4;--line:#e2ddd0;--ink:#1e2420;--mute:#6c6f66;
+  --head:#1f2a24;--headInk:#f3f1ea;--headMute:#b9c2b9;
+  --v4:#1d7a58;--v22:#c25a1c;--bh:#8c8676;--bad:#b42318;--good:#2f7d3a;--band:rgba(180,35,24,.08);
+  --v4soft:rgba(29,122,88,.10);--v22soft:rgba(194,90,28,.10);--shadow:0 1px 2px rgba(30,36,32,.05),0 4px 16px rgba(30,36,32,.05)
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#111513;--panel:#181d1a;--panel2:#202622;--line:#2d3530;--ink:#e7ebe7;--mute:#9aa29c;
+  --head:#0b0e0c;--headInk:#eef1ed;--headMute:#8f9a92;
+  --v4:#4cc79a;--v22:#f0904f;--bh:#8f918a;--bad:#ff7b6e;--good:#6fd08f;--band:rgba(255,123,110,.10);
+  --v4soft:rgba(76,199,154,.12);--v22soft:rgba(240,144,79,.12);--shadow:none
+}}
 *{box-sizing:border-box;min-width:0}
 [hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;overflow-x:clip}
-.wrap{max-width:1280px;margin:0 auto;padding:24px max(3vw,16px) 48px}
-h1{font-size:clamp(24px,3.2vw,34px);margin:0 0 4px;letter-spacing:-.02em}
-h2{font-size:17px;margin:0 0 10px}
-.sub{color:var(--mute);margin:0 0 20px}
-.grid{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:20px;align-items:start}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
-input,select{width:100%;font:15px system-ui,"Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px}
-input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
-fieldset{border:0;padding:0;margin:14px 0 0;border-top:1px solid var(--line)}
-legend{font-weight:650;padding:12px 0 0;font-size:14px}
-legend .tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:99px;margin-left:6px;color:#fff;vertical-align:1px}
-.chk{display:flex;gap:8px;align-items:flex-start;color:var(--ink);font-size:14px;margin:10px 0 0}.chk input{width:auto;min-height:0;margin-top:4px}
-button{font:600 15px system-ui,"Malgun Gothic",sans-serif;border:0;border-radius:9px;min-height:44px;padding:0 16px;cursor:pointer}
-.go{width:100%;margin-top:16px;background:var(--accent);color:#fff}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.chips button{min-height:32px;padding:0 10px;font-size:13px;background:var(--chip);color:var(--ink);border:1px solid var(--line)}
-.chips button.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.note{font-size:12.5px;color:var(--mute);margin:8px 0 0}
-.msg{padding:14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--mute);margin-bottom:14px}
-.msg.err{color:var(--bad)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
-.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-.kpi .k{font-size:12.5px;color:var(--mute)}
-.kpi .v{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:2px}
-.kpi .v span{white-space:nowrap}
-.kpi .s{font-size:12px;color:var(--mute);margin-top:2px}
-.c4{color:var(--v4)}.c22{color:var(--v22)}.cbh{color:var(--bh)}.pos{color:var(--good)}.neg{color:var(--bad)}
-.fig{position:relative;height:330px}.fig svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.fig.sm{height:160px}.fig.md{height:200px}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:8px;align-items:center}
-.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
-.legend .band{height:10px;background:var(--band);border:1px solid var(--bad);opacity:.8}
-.legend label{display:inline-flex;gap:6px;align-items:center;margin:0;color:var(--mute)}.legend label input{width:auto;min-height:0}
-.stack>*+*{margin-top:14px}
-.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.15);border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.55;white-space:nowrap;z-index:3}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Pretendard,system-ui,-apple-system,"Malgun Gothic",sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1200px;margin:0 auto;padding:0 max(3vw,16px)}
+
+/* 헤더 */
+header{background:var(--head);color:var(--headInk)}
+header .wrap{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-top:28px;padding-bottom:22px}
+header h1{margin:0;font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-.03em}
+header p{margin:6px 0 0;color:var(--headMute);font-size:14px;max-width:640px}
+.stamp{font-size:12.5px;color:var(--headMute);border:1px solid rgba(255,255,255,.14);border-radius:99px;padding:5px 12px;white-space:nowrap}
+.stamp b{color:var(--headInk);font-weight:600}
+
+/* 설정 바 */
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);margin-top:-1px;padding:18px 20px 16px;position:relative;top:-14px}
+.row1{display:flex;gap:14px 20px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.seg{display:inline-flex;background:var(--panel2);border-radius:12px;padding:4px;gap:2px;position:relative;max-width:100%}
+.seg input{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+.seg label{padding:8px 16px;border-radius:9px;font-weight:600;font-size:14px;cursor:pointer;color:var(--mute);white-space:nowrap}
+.seg input:checked+label{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg input:focus-visible+label{outline:2px solid var(--v4)}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.presets span{font-size:12.5px;color:var(--mute);margin-right:2px}
+.pill{font:600 13px Pretendard,system-ui,sans-serif;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:99px;padding:6px 12px;cursor:pointer}
+.pill:hover{background:var(--panel2)}
+.pill.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 14px;margin-top:16px}
+.fields .wide{grid-column:span 2}
+.f label,.adv label{display:block;font-size:12.5px;color:var(--mute);margin:0 0 5px;font-weight:500}
+input,select{width:100%;font:15px Pretendard,system-ui,"Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:40px}
+input[type=file]{padding:6px 8px;font-size:13px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--v4);outline-offset:1px}
+.periods{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.periods .pill{padding:3px 9px;font-size:12px}
+.row3{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.chk{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}.chk input{width:16px;height:16px;min-height:0;accent-color:var(--v4)}
+details.advbox summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--ink);list-style:none;display:inline-flex;align-items:center;gap:6px}
+details.advbox summary::-webkit-details-marker{display:none}
+details.advbox summary::before{content:"＋";font-size:13px;color:var(--mute)}
+details.advbox[open] summary::before{content:"－"}
+.adv{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:12px}
+.adv fieldset{border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;margin:0}
+.adv fieldset.s4{border-top:3px solid var(--v4)}.adv fieldset.s22{border-top:3px solid var(--v22)}
+.adv legend{font-weight:700;font-size:14px;padding:0 6px}
+.adv .g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.adv .note{grid-column:1/-1}
+.go{font:700 15px Pretendard,system-ui,sans-serif;border:0;border-radius:12px;min-height:46px;padding:0 28px;cursor:pointer;background:var(--v4);color:#fff;display:inline-flex;align-items:center;gap:8px}
+.go:hover{filter:brightness(1.08)}
+.note{font-size:12.5px;color:var(--mute);margin:6px 0 0}
+.msg{padding:28px 20px;border-radius:14px;border:1px dashed var(--line);color:var(--mute);text-align:center;margin:4px 0 24px}
+.msg.err{color:var(--bad);border-color:var(--bad)}
+
+/* 결과 */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px 20px}
+.card h2{font-size:15px;margin:0 0 12px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card h2 small{font-weight:500;color:var(--mute);font-size:12.5px}
+.stack{display:grid;gap:16px;margin-bottom:24px}
+.heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.hero{border-radius:14px;padding:16px 18px;border:1px solid var(--line)}
+.hero.v4{background:var(--v4soft);border-color:transparent}.hero.v22{background:var(--v22soft);border-color:transparent}.hero.bh{background:var(--panel2);border-color:transparent}
+.hero .tag{font-size:12.5px;font-weight:700;letter-spacing:.02em}
+.hero.v4 .tag{color:var(--v4)}.hero.v22 .tag{color:var(--v22)}.hero.bh .tag{color:var(--mute)}
+.hero .big{font-size:clamp(26px,3.4vw,34px);font-weight:800;letter-spacing:-.03em;margin:4px 0 2px;line-height:1.15}
+.hero .sub{font-size:13px;color:var(--mute)}
+.score{margin-top:14px;overflow-x:auto}
+.score table td:first-child{color:var(--mute)}
+.duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.fig{position:relative;height:340px}.fig svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.fig.sm{height:200px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:10px;align-items:center}
+.legend i{display:inline-block;width:16px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.legend .band{height:10px;background:var(--band);border:1px solid var(--bad)}
+.legend label{display:inline-flex;gap:6px;align-items:center;margin:0 0 0 auto;font-size:13px}.legend label input{width:auto;min-height:0;accent-color:var(--v4)}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.14);border-radius:10px;padding:8px 11px;font-size:12.5px;line-height:1.6;white-space:nowrap;z-index:3}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
-.tabs button{min-height:36px;font-size:13.5px;background:var(--chip);color:var(--ink);border:1px solid var(--line)}
-.tabs button.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
-.scroll{overflow:auto;max-height:460px}
-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
-th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
-th{color:var(--mute);font-weight:600;position:sticky;top:0;background:var(--panel);z-index:1}
+.c4{color:var(--v4)}.c22{color:var(--v22)}.pos{color:var(--good)}.neg{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{color:var(--mute);font-weight:600;font-size:12.5px;position:sticky;top:0;background:var(--panel);z-index:1}
 td.l,th.l{text-align:left}
-td.wrap{white-space:normal;min-width:180px;text-align:left}
-.orders{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.orders h3{font-size:14px;margin:0 0 6px}
-.badge{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:99px;background:var(--chip);border:1px solid var(--line);color:var(--mute)}
-details.rules{margin-top:14px}
-details.rules summary{cursor:pointer;font-weight:650}
-details.rules .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:10px;font-size:13.5px}
+td.wrapc{white-space:normal;min-width:170px;text-align:left}
+.orders{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.ord{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ord .top{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.ord.v4 .top{background:var(--v4soft)}.ord.v22 .top{background:var(--v22soft)}
+.ord .top b{font-size:15px}.ord .top span{font-size:12.5px;color:var(--mute)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.facts div{background:var(--panel);padding:9px 12px}
+.facts small{display:block;font-size:11.5px;color:var(--mute)}
+.facts b{font-size:14.5px}
+.ord table th{background:var(--panel2);position:static}
+.ord table td,.ord table th{padding:6px 12px}
+.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:-4px 0 10px}
+.tabs button{font:600 13.5px Pretendard,system-ui,sans-serif;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:8px 12px;cursor:pointer;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.scroll{overflow:auto;max-height:480px}
+details.rules{margin:8px 0 40px}
+details.rules summary{cursor:pointer;font-weight:700}
+details.rules .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:12px;font-size:13.5px}
 details.rules ul{padding-left:18px;margin:6px 0}
 details.rules h3{font-size:14px;margin:8px 0 4px}
-@media(max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:520px){.fig{height:250px}.kpi .v{font-size:19px}}
+footer{color:var(--mute);font-size:12.5px;text-align:center;padding:0 0 32px}
+@media(max-width:860px){.duo{grid-template-columns:minmax(0,1fr)}.fields .wide{grid-column:auto}}
+@media(max-width:520px){.fig{height:260px}.adv .g{grid-template-columns:repeat(2,minmax(0,1fr))}.controls{padding:14px}.seg label{padding:7px 11px}.legend label{margin-left:0}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>무한매수법 백테스터</h1>
-  <p class="sub">V4.0은 실제 운영 중인 자동매매 코드의 계산 로직을 그대로 옮겼고, V2.2는 라오어 원문 규칙입니다. 가격 데이터는 매일 자동으로 갱신됩니다.</p>
+<header>
+  <div class="wrap">
+    <div>
+      <h1>무한매수법 백테스터</h1>
+      <p>V4.0은 실제 운영 중인 자동매매 코드의 계산 로직 그대로, V2.2는 라오어 원문 규칙으로 과거 데이터를 검증합니다.</p>
+    </div>
+    <div class="stamp" id="stamp">데이터 확인 중…</div>
+  </div>
+</header>
 
-  <div class="grid">
-    <form class="panel" id="f" autocomplete="off">
-      <label for="strategy">전략</label>
-      <select id="strategy">
-        <option value="v4">V4.0 (실운영 로직)</option>
-        <option value="v22">V2.2 (라오어 원문)</option>
-        <option value="both">V4.0 vs V2.2 비교</option>
-      </select>
-      <div class="chips" id="presets">
-        <button type="button" data-p="mine">내 V4.0 실운영 세팅</button>
-        <button type="button" data-p="v22soxl">V2.2 SOXL 원문</button>
-        <button type="button" data-p="v22tqqq">V2.2 TQQQ 원문</button>
+<main class="wrap">
+  <form class="controls" id="f" autocomplete="off">
+    <div class="row1">
+      <div class="seg" role="radiogroup" aria-label="전략">
+        <input type="radio" name="strategy" id="s_v4" value="v4" checked><label for="s_v4">V4.0 실운영</label>
+        <input type="radio" name="strategy" id="s_v22" value="v22"><label for="s_v22">V2.2 원문</label>
+        <input type="radio" name="strategy" id="s_both" value="both"><label for="s_both">둘 다 비교</label>
       </div>
+      <div class="presets" id="presets">
+        <span>빠른 설정</span>
+        <button type="button" class="pill" data-p="mine">내 V4.0 세팅</button>
+        <button type="button" class="pill" data-p="v22soxl">V2.2 SOXL</button>
+        <button type="button" class="pill" data-p="v22tqqq">V2.2 TQQQ</button>
+      </div>
+    </div>
 
-      <label for="tk">종목</label>
-      <select id="tk"></select>
-      <label for="csv">또는 CSV 올리기 (야후 형식: Date,Open,High,Low,Close)</label>
-      <input type="file" id="csv" accept=".csv">
-      <div class="two">
-        <div><label for="from">시작일</label><input type="date" id="from"></div>
-        <div><label for="to">종료일</label><input type="date" id="to"></div>
+    <div class="fields">
+      <div class="f"><label for="tk">종목</label><select id="tk"></select></div>
+      <div class="f wide">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label for="from">시작일</label><input type="date" id="from"></div>
+          <div><label for="to">종료일</label><input type="date" id="to"></div>
+        </div>
+        <div class="periods" id="periods">
+          <button type="button" class="pill" data-m="6">6개월</button><button type="button" class="pill" data-m="12">1년</button><button type="button" class="pill" data-m="36">3년</button><button type="button" class="pill" data-m="60">5년</button><button type="button" class="pill" data-m="120">10년</button><button type="button" class="pill" data-m="0">전체</button>
+        </div>
       </div>
-      <div class="chips" id="periods">
-        <button type="button" data-m="6">6개월</button><button type="button" data-m="12">1년</button><button type="button" data-m="36">3년</button><button type="button" data-m="60">5년</button><button type="button" data-m="120">10년</button><button type="button" data-m="0">전체</button>
+      <div class="f"><label for="seed">원금 ($)</label><input type="number" id="seed" value="5000" min="100" step="100" class="num"></div>
+      <div class="f"><label for="feePct">수수료 (%)</label><input type="number" id="feePct" value="0" step="0.01" min="0" class="num"></div>
+      <div class="f"><label for="csv">CSV 올리기 (야후 형식)</label><input type="file" id="csv" accept=".csv"></div>
+    </div>
+
+    <details class="advbox" style="margin-top:14px">
+      <summary>전략 세부 설정</summary>
+      <div class="adv">
+        <fieldset class="s4" id="fs4"><legend class="c4">V4.0</legend>
+          <div class="g">
+            <div><label for="v4_splits">분할 수</label><select id="v4_splits"><option>20</option><option>40</option></select></div>
+            <div><label for="v4_target">목표수익률 %</label><input type="number" id="v4_target" value="15" step="0.5"></div>
+            <div><label for="v4_star">별% 기준값</label><input type="number" id="v4_star" value="20" step="0.5"></div>
+            <div><label for="v4_rexit">리버스 복귀 %</label><input type="number" id="v4_rexit" value="80" step="1"></div>
+            <div><label for="v4_big">큰수 %</label><input type="number" id="v4_big" value="12" step="1"></div>
+            <div><label for="v4_lrows">사다리 줄</label><input type="number" id="v4_lrows" value="5" min="0" step="1"></div>
+            <div><label for="v4_lqty">줄당 수량</label><input type="number" id="v4_lqty" value="1" min="1" step="1"></div>
+            <label class="chk note" style="font-size:13px;color:var(--ink)"><input type="checkbox" id="v4_dd" checked> 리버스 첫날 T 감쇄를 실운영 코드처럼 2회 적용 (주문 시 + MOC 체결 시)</label>
+          </div>
+        </fieldset>
+        <fieldset class="s22" id="fs22"><legend class="c22">V2.2</legend>
+          <div class="g">
+            <div><label for="v22_splits">분할 수</label><select id="v22_splits"><option selected>40</option><option>20</option></select></div>
+            <div><label for="v22_target">목표수익률 %</label><input type="number" id="v22_target" value="12" step="0.5"></div>
+            <div><label for="v22_star">별% 기준값</label><input type="number" id="v22_star" value="12" step="0.5"></div>
+            <div><label for="v22_big">큰수 %</label><input type="number" id="v22_big" value="12" step="1"></div>
+            <div><label for="v22_lrows">사다리 줄</label><input type="number" id="v22_lrows" value="5" min="0" step="1"></div>
+            <div><label for="v22_lqty">줄당 수량</label><input type="number" id="v22_lqty" value="1" min="1" step="1"></div>
+            <p class="note">원문: SOXL 목표 12%, TQQQ 목표 10%. 별% 기준값은 목표%와 같음.</p>
+          </div>
+        </fieldset>
       </div>
-      <div class="two">
-        <div><label for="seed">원금 ($)</label><input type="number" id="seed" value="5000" min="100" step="100"></div>
-        <div><label for="feePct">수수료 (%)</label><input type="number" id="feePct" value="0" step="0.01" min="0"></div>
-      </div>
+    </details>
+
+    <div class="row3">
       <label class="chk"><input type="checkbox" id="compound" checked> 복리 (사이클 수익을 다음 매수 예산에 포함)</label>
+      <button class="go" type="submit">백테스트 실행 →</button>
+    </div>
+  </form>
 
-      <fieldset id="fs4"><legend>V4.0 설정<span class="tag" style="background:var(--v4)">V4.0</span></legend>
-        <div class="two">
-          <div><label for="v4_splits">분할 수</label><select id="v4_splits"><option>20</option><option>40</option></select></div>
-          <div><label for="v4_target">목표수익률 (%)</label><input type="number" id="v4_target" value="15" step="0.5"></div>
-          <div><label for="v4_star">별% 기준값</label><input type="number" id="v4_star" value="20" step="0.5"></div>
-          <div><label for="v4_rexit">리버스 복귀 (평단의 %)</label><input type="number" id="v4_rexit" value="80" step="1"></div>
-          <div><label for="v4_big">큰수 (%)</label><input type="number" id="v4_big" value="12" step="1"></div>
-          <div><label for="v4_lrows">사다리 줄 수</label><input type="number" id="v4_lrows" value="5" min="0" step="1"></div>
-          <div><label for="v4_lqty">사다리 줄당 수량</label><input type="number" id="v4_lqty" value="1" min="1" step="1"></div>
-        </div>
-        <label class="chk"><input type="checkbox" id="v4_dd" checked> 리버스 첫날 T 감쇄를 실운영 코드처럼 적용 (주문 시 1회 + MOC 체결 시 1회)</label>
-      </fieldset>
+  <div class="msg" id="msg">조건을 고르고 <b>백테스트 실행</b>을 눌러주세요. LOC는 종가 체결, 지정가 매도는 장중 고가가 닿으면 주문가 체결로 판정합니다.</div>
 
-      <fieldset id="fs22"><legend>V2.2 설정<span class="tag" style="background:var(--v22)">V2.2</span></legend>
-        <div class="two">
-          <div><label for="v22_splits">분할 수</label><select id="v22_splits"><option selected>40</option><option>20</option></select></div>
-          <div><label for="v22_target">목표수익률 (%)</label><input type="number" id="v22_target" value="12" step="0.5"></div>
-          <div><label for="v22_star">별% 기준값</label><input type="number" id="v22_star" value="12" step="0.5"></div>
-          <div><label for="v22_big">큰수 (%)</label><input type="number" id="v22_big" value="12" step="1"></div>
-          <div><label for="v22_lrows">사다리 줄 수</label><input type="number" id="v22_lrows" value="5" min="0" step="1"></div>
-          <div><label for="v22_lqty">사다리 줄당 수량</label><input type="number" id="v22_lqty" value="1" min="1" step="1"></div>
-        </div>
-        <p class="note">원문: SOXL 목표 12%, TQQQ 목표 10%, 별% 기준값은 목표%와 같음.</p>
-      </fieldset>
+  <div id="out" hidden class="stack">
+    <section class="card">
+      <h2><span id="title"></span><small id="rangeNote"></small></h2>
+      <div class="heroes" id="heroes"></div>
+      <div class="score" id="score"></div>
+    </section>
 
-      <button class="go" type="submit">백테스트 실행</button>
-      <p class="note">LOC는 종가 체결, 지정가 매도는 장중 고가가 닿으면 주문가 체결, MOC는 종가 체결로 판정합니다.</p>
-    </form>
+    <section class="card">
+      <h2>자산 곡선<small>로그 스케일 기준 · 점은 사이클 종료</small></h2>
+      <div class="fig" id="eqFig"><svg id="eq" role="img" aria-label="자산 곡선"></svg><div class="tip" hidden></div></div>
+      <div class="legend" id="eqLegend"></div>
+    </section>
 
-    <section>
-      <div class="msg" id="msg">왼쪽에서 조건을 고르고 실행을 눌러주세요.</div>
-      <div id="out" hidden class="stack">
-        <div class="kpis" id="kpis"></div>
+    <div class="duo">
+      <section class="card">
+        <h2>고점 대비 낙폭</h2>
+        <div class="fig sm" id="ddFig"><svg id="dd" role="img" aria-label="낙폭"></svg><div class="tip" hidden></div></div>
+      </section>
+      <section class="card">
+        <h2>T 값 추이</h2>
+        <div class="fig sm" id="tFig"><svg id="tc" role="img" aria-label="T값"></svg><div class="tip" hidden></div></div>
+      </section>
+    </div>
 
-        <div class="panel">
-          <h2 id="title"></h2>
-          <div class="fig" id="eqFig"><svg id="eq" role="img" aria-label="자산 곡선"></svg><div class="tip" hidden></div></div>
-          <div class="legend" id="eqLegend"></div>
-        </div>
+    <section class="card">
+      <h2>다음 거래일 주문표<small>마지막 날 종가 기준으로 계산한 주문</small></h2>
+      <div class="orders" id="orders"></div>
+    </section>
 
-        <div class="panel">
-          <h2>고점 대비 낙폭</h2>
-          <div class="fig sm" id="ddFig"><svg id="dd" role="img" aria-label="낙폭"></svg><div class="tip" hidden></div></div>
-        </div>
-
-        <div class="panel">
-          <h2>T 값 추이</h2>
-          <div class="fig md" id="tFig"><svg id="tc" role="img" aria-label="T값"></svg><div class="tip" hidden></div></div>
-        </div>
-
-        <div class="panel" id="statePanel">
-          <h2>마지막 날 상태와 다음 거래일 주문표</h2>
-          <div class="orders" id="orders"></div>
-        </div>
-
-        <div class="panel">
-          <div class="tabs" id="tabs"></div>
-          <div class="scroll" id="tbl"></div>
-        </div>
-      </div>
-
-      <details class="rules panel">
-        <summary>규칙과 가정 자세히 보기</summary>
-        <div class="cols">
-          <div>
-            <h3 class="c4">V4.0 (실운영 로직)</h3>
-            <ul>
-              <li>1회매수금 = 잔금 ÷ (분할수 − T)</li>
-              <li>별% = 별% 기준값 − (기준값 ÷ (분할수/2)) × T, 별지점 = 평단 × (1+별%)</li>
-              <li>전반전(T &lt; 분할수/2): 절반은 별지점−0.01 LOC, 나머지는 평단 LOC. 별지점 매수가가 목표가 이상이면 목표가−0.01로 낮춤</li>
-              <li>후반전: 전액 별지점−0.01 LOC</li>
-              <li>사다리: 1회매수금 ÷ (매수수량 + k) 가격에 줄당 수량만큼, 주문가 아래로</li>
-              <li>매도: 1/4은 별지점, 3/4은 평단 × (1+목표%). 둘 중 가격이 낮은 줄이 LOC, 높은 줄이 지정가 (실운영과 동일)</li>
-              <li>T: 매도가 있으면 ×0.75, 전반전 매수는 평단 지점 체결 시 +1 아니면 +0.5, 후반전은 1주 이하 +0.5 아니면 +1</li>
-              <li>리버스 진입: T &gt; 분할수 − 1. 첫날 보유 ÷ (분할수/2)를 MOC 매도</li>
-              <li>리버스 진행: 별지점 = 최근 5거래일 종가 평균. 잔금 ÷ 4로 별지점−0.01 LOC 매수, 별지점 LOC 매도. 매도 시 T × 0.9(40분할 0.95), 매수 시 T + (분할수 − T) × 0.25. 1주도 못 사면 MOC 매도</li>
-              <li>리버스 복귀: 종가 &gt; 평단 × 복귀%</li>
-              <li>새 사이클: 전일종가 × (1+큰수%) LOC, 예산 = (원금 + 누적손익) ÷ 분할수</li>
-            </ul>
-          </div>
-          <div>
-            <h3 class="c22">V2.2 (라오어 원문)</h3>
-            <ul>
-              <li>1회매수금 = 사이클 시작 자금 ÷ 분할수 (사이클 동안 고정)</li>
-              <li>T = 보유 매입원가 ÷ 1회매수금, 소수 둘째 자리 올림</li>
-              <li>별% = 기준값 × (1 − 2T/분할수). 40분할 SOXL이면 12 − 0.6T, TQQQ면 10 − 0.5T</li>
-              <li>전반전: 절반 별지점−0.01 LOC + 절반 평단 LOC / 후반전: 전액 별지점−0.01 LOC</li>
-              <li>매도: 1/4 별지점 LOC + 3/4 평단 × (1+목표%) 지정가</li>
-              <li>소진(T &gt; 분할수 − 1): 쿼터손절. 보유 1/4을 MOC 매도한 뒤 일반 규칙으로 계속</li>
-              <li>새 사이클: 전일종가 × (1+큰수%) LOC</li>
-            </ul>
-            <h3>공통 가정</h3>
-            <ul>
-              <li>주문은 그날 종가 확정 후 계산해서 다음 거래일에 체결 판정</li>
-              <li>가격은 액면분할만 반영된 야후 데이터 (배당 미반영). 세금·환율·프리/애프터마켓 체결은 반영 안 함</li>
-              <li>1달러 미만이던 오래된 구간은 센트 단위 반올림 오차가 커서 결과가 왜곡될 수 있음</li>
-            </ul>
-          </div>
-        </div>
-      </details>
+    <section class="card">
+      <div class="tabs" id="tabs"></div>
+      <div class="scroll" id="tbl"></div>
     </section>
   </div>
-</div>
+
+  <details class="rules card">
+    <summary>규칙과 가정 자세히 보기</summary>
+    <div class="cols">
+      <div>
+        <h3 class="c4">V4.0 (실운영 로직)</h3>
+        <ul>
+          <li>1회매수금 = 잔금 ÷ (분할수 − T)</li>
+          <li>별% = 별% 기준값 − (기준값 ÷ (분할수/2)) × T, 별지점 = 평단 × (1+별%)</li>
+          <li>전반전(T &lt; 분할수/2): 절반은 별지점−0.01 LOC, 나머지는 평단 LOC. 별지점 매수가가 목표가 이상이면 목표가−0.01로 낮춤</li>
+          <li>후반전: 전액 별지점−0.01 LOC</li>
+          <li>사다리: 1회매수금 ÷ (매수수량 + k) 가격에 줄당 수량만큼, 주문가 아래로</li>
+          <li>매도: 1/4은 별지점, 3/4은 평단 × (1+목표%). 둘 중 가격이 낮은 줄이 LOC, 높은 줄이 지정가 (실운영과 동일)</li>
+          <li>T: 매도가 있으면 ×0.75, 전반전 매수는 평단 지점 체결 시 +1 아니면 +0.5, 후반전은 1주 이하 +0.5 아니면 +1</li>
+          <li>리버스 진입: T &gt; 분할수 − 1. 첫날 보유 ÷ (분할수/2)를 MOC 매도</li>
+          <li>리버스 진행: 별지점 = 최근 5거래일 종가 평균. 잔금 ÷ 4로 별지점−0.01 LOC 매수, 별지점 LOC 매도. 매도 시 T × 0.9(40분할 0.95), 매수 시 T + (분할수 − T) × 0.25. 1주도 못 사면 MOC 매도</li>
+          <li>리버스 복귀: 종가 &gt; 평단 × 복귀%</li>
+          <li>새 사이클: 전일종가 × (1+큰수%) LOC, 예산 = (원금 + 누적손익) ÷ 분할수</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="c22">V2.2 (라오어 원문)</h3>
+        <ul>
+          <li>1회매수금 = 사이클 시작 자금 ÷ 분할수 (사이클 동안 고정)</li>
+          <li>T = 보유 매입원가 ÷ 1회매수금, 소수 둘째 자리 올림</li>
+          <li>별% = 기준값 × (1 − 2T/분할수). 40분할 SOXL이면 12 − 0.6T, TQQQ면 10 − 0.5T</li>
+          <li>전반전: 절반 별지점−0.01 LOC + 절반 평단 LOC / 후반전: 전액 별지점−0.01 LOC</li>
+          <li>매도: 1/4 별지점 LOC + 3/4 평단 × (1+목표%) 지정가</li>
+          <li>소진(T &gt; 분할수 − 1): 쿼터손절. 보유 1/4을 MOC 매도한 뒤 일반 규칙으로 계속</li>
+          <li>새 사이클: 전일종가 × (1+큰수%) LOC</li>
+        </ul>
+        <h3>공통 가정</h3>
+        <ul>
+          <li>체결: LOC 매수는 종가 ≤ 주문가, LOC 매도는 종가 ≥ 주문가일 때 종가로. 지정가 매도는 장중 고가 ≥ 주문가일 때 주문가로. MOC는 종가로</li>
+          <li>주문은 그날 종가 확정 후 계산해서 다음 거래일에 체결 판정</li>
+          <li>가격은 액면분할만 반영된 야후 데이터 (배당 미반영). 세금·환율·프리/애프터마켓 체결은 반영 안 함</li>
+          <li>1달러 미만이던 오래된 구간은 센트 단위 반올림 오차가 커서 결과가 왜곡될 수 있음</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+</main>
+<footer>과거 성과는 미래 수익을 보장하지 않습니다.</footer>
 
 <script src="engine.js"></script>
 <script>
@@ -220,7 +294,16 @@ const pctSpan = (v, d = 1) => `<span class="${v >= 0 ? 'pos' : 'neg'}">${v >= 0 
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const NAMES = { SOXL: '반도체 3배', TQQQ: '나스닥100 3배', UPRO: 'S&P500 3배', TECL: '기술 3배', FNGU: '빅테크 3배', TNA: '러셀2000 3배', FAS: '금융 3배', LABU: '바이오 3배', QLD: '나스닥100 2배', SSO: 'S&P500 2배', USD: '반도체 2배', NVDL: '엔비디아 2배', TSLL: '테슬라 2배', QQQ: '나스닥100', SOXX: '반도체', SPY: 'S&P500' };
 const cache = {};
-let csvBars = null, last = null, tab = 'cycles', history = [];
+let csvBars = null, last = null, tab = 'cycles';
+const history = [];
+
+const getStrategy = () => document.querySelector('input[name="strategy"]:checked').value;
+const setStrategy = v => { $('s_' + v).checked = true; syncStrategy(); };
+function syncStrategy() { const s = getStrategy(); $('fs4').hidden = s === 'v22'; $('fs22').hidden = s === 'v4'; }
+document.querySelectorAll('input[name="strategy"]').forEach(r => r.onchange = syncStrategy);
+
+fetch('data/meta.json').then(r => r.json()).then(m => { $('stamp').innerHTML = `데이터 기준일 <b>${m.lastDate}</b>`; })
+  .catch(() => { $('stamp').textContent = '데이터: 야후 파이낸스 일봉'; });
 
 // ── 기간 ──
 const ymd = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
@@ -228,10 +311,10 @@ const today = ymd(new Date());
 function setPeriod(m) {
   const d = new Date(); if (m) d.setMonth(d.getMonth() - m);
   $('from').value = m ? ymd(d) : '2000-01-01'; $('to').value = today;
-  document.querySelectorAll('#periods button').forEach(b => b.classList.toggle('on', +b.dataset.m === m));
+  document.querySelectorAll('#periods .pill').forEach(b => b.classList.toggle('on', +b.dataset.m === m));
 }
-document.querySelectorAll('#periods button').forEach(b => b.onclick = () => setPeriod(+b.dataset.m));
-$('from').oninput = $('to').oninput = () => document.querySelectorAll('#periods button').forEach(b => b.classList.remove('on'));
+document.querySelectorAll('#periods .pill').forEach(b => b.onclick = () => setPeriod(+b.dataset.m));
+$('from').oninput = $('to').oninput = () => document.querySelectorAll('#periods .pill').forEach(b => b.classList.remove('on'));
 setPeriod(60);
 
 // ── 프리셋 ──
@@ -240,28 +323,24 @@ const PRESETS = {
   v22soxl: { strategy: 'v22', tk: 'SOXL', v22_splits: 40, v22_target: 12, v22_star: 12, v22_big: 12 },
   v22tqqq: { strategy: 'v22', tk: 'TQQQ', v22_splits: 40, v22_target: 10, v22_star: 10, v22_big: 10 }
 };
-document.querySelectorAll('#presets button').forEach(b => b.onclick = () => {
+document.querySelectorAll('#presets .pill').forEach(b => b.onclick = () => {
   const p = PRESETS[b.dataset.p];
-  for (const [k, v] of Object.entries(p)) { const el = $(k); if (!el) continue; if (el.type === 'checkbox') el.checked = v; else el.value = v; }
+  for (const [k, v] of Object.entries(p)) { if (k === 'strategy') continue; const el = $(k); if (!el) continue; if (el.type === 'checkbox') el.checked = v; else el.value = v; }
   if (p.tk) { csvBars = null; $('csv').value = ''; }
-  syncStrategy();
-  document.querySelectorAll('#presets button').forEach(x => x.classList.toggle('on', x === b));
+  setStrategy(p.strategy);
+  document.querySelectorAll('#presets .pill').forEach(x => x.classList.toggle('on', x === b));
 });
-function syncStrategy() {
-  const s = $('strategy').value;
-  $('fs4').hidden = s === 'v22'; $('fs22').hidden = s === 'v4';
-}
-$('strategy').onchange = syncStrategy; syncStrategy();
-document.querySelector('#presets button[data-p="mine"]').classList.add('on');
+syncStrategy();
+document.querySelector('#presets .pill[data-p="mine"]').classList.add('on');
 
-// ── 종목 목록 ──
+// ── 종목 ──
 fetch('data/tickers.json').then(r => r.json()).then(list => {
-  const lev = list.filter(t => !['QQQ', 'SOXX', 'SPY'].includes(t)), base = list.filter(t => ['QQQ', 'SOXX', 'SPY'].includes(t));
+  const BASE = ['QQQ', 'SOXX', 'SPY'], lev = list.filter(t => !BASE.includes(t)), base = list.filter(t => BASE.includes(t));
   const opt = t => `<option value="${t}"${t === 'SOXL' ? ' selected' : ''}>${t}${NAMES[t] ? ' · ' + NAMES[t] : ''}</option>`;
   $('tk').innerHTML = `<optgroup label="레버리지">${lev.map(opt).join('')}</optgroup>` + (base.length ? `<optgroup label="1배 (비교용)">${base.map(opt).join('')}</optgroup>` : '');
   // 주소 끝에 #run(V4.0) / #run-v22 / #run-both 를 붙이면 기본 설정으로 바로 실행
   const m = location.hash.match(/^#run(?:-(v22|both))?$/);
-  if (m) { $('strategy').value = m[1] || 'v4'; syncStrategy(); $('f').requestSubmit(); }
+  if (m) { setStrategy(m[1] || 'v4'); $('f').requestSubmit(); }
 }).catch(() => { $('tk').innerHTML = '<option value="">(데이터 없음: CSV를 올려주세요)</option>'; });
 $('tk').onchange = () => { csvBars = null; $('csv').value = ''; };
 
@@ -272,7 +351,7 @@ $('csv').onchange = async e => {
   if (ix('date') < 0 || ix('close') < 0) { showMsg('CSV에 Date, Close 열이 필요해요.', true); csvBars = null; return; }
   csvBars = rows.map(r => r.split(',')).map(c => ({ d: c[ix('date')].slice(0, 10), o: +c[ix('open')], h: +c[ix('high')], l: +c[ix('low')], c: +c[ix('close')] }))
     .filter(b => b.c > 0 && b.h > 0).sort((a, b) => a.d < b.d ? -1 : 1);
-  showMsg(`${f.name}: ${csvBars.length}일치 데이터를 읽었어요.`);
+  showMsg(`${f.name}: ${csvBars.length}일치 데이터를 읽었어요. 실행을 누르면 이 데이터로 계산합니다.`);
 };
 
 async function load(t) {
@@ -300,43 +379,55 @@ $('f').onsubmit = async e => {
     const t = csvBars ? ($('csv').files[0]?.name.replace(/\.csv$/i, '') || 'CSV') : $('tk').value;
     if (!t) throw new Error('종목을 고르거나 CSV를 올려주세요.');
     const bars = csvBars || await load(t);
-    const o = readOpts(), s = $('strategy').value;
+    const o = readOpts(), s = getStrategy();
     if (o.v4.seed < 100) throw new Error('원금은 $100 이상으로 넣어주세요.');
     if (bars.filter(b => b.d >= o.v4.from && b.d <= o.v4.to).length < 10) throw new Error('기간 안에 거래일이 너무 적어요. 시작일을 앞당겨 주세요.');
     const runs = [];
     if (s !== 'v22') runs.push({ key: 'v4', name: 'V4.0', color: css('--v4'), r: MumaeBT.run(bars, o.v4) });
     if (s !== 'v4') runs.push({ key: 'v22', name: 'V2.2', color: css('--v22'), r: MumaeBT.run(bars, o.v22) });
-    last = { t, runs, bh: runs[0].r.bh, eq0: runs[0].r.equity };
-    last.range = `${last.eq0[0].d} ~ ${last.eq0[last.eq0.length - 1].d}`;
+    last = { t, runs, bh: runs[0].r.bh };
+    const eq0 = runs[0].r.equity;
+    last.range = `${eq0[0].d} ~ ${eq0[eq0.length - 1].d}`;
     history.unshift({ t, range: last.range, runs: runs.map(x => ({ name: x.name, p: x.r.params, s: x.r.stats })), bh: last.bh });
-    if (!runs.some(x => x.key === tab.split(':')[1]) && tab.includes(':')) tab = 'cycles';
     $('msg').hidden = true; $('out').hidden = false;
     render();
+    if (location.hash !== '#run' && !location.hash.startsWith('#run-')) $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) { showMsg(err.message, true); console.error(err); }
 };
 
 function render() {
-  const { runs, bh } = last;
-  $('title').textContent = `${last.t} · ${last.range}`;
-  const yrs = runs[0].r.stats.years;
-  const row = (label, f, sub) => `<div class="kpi"><div class="k">${label}</div><div class="v">${runs.map(x => `<span class="c${x.key === 'v4' ? 4 : 22}">${f(x.r.stats)}</span>`).join('')}</div><div class="s">${sub}</div></div>`;
-  $('kpis').innerHTML =
-    row('최종 자산', s => usd(s.final), `단순보유 ${usd(bh.final)}`) +
-    (yrs >= 1 ? row('연평균 수익률 (CAGR)', s => pctSpan(s.cagr), `단순보유 ${fmt(bh.cagr, 1)}% · 총 ${runs.map(x => fmt(x.r.stats.ret) + '%').join(' / ')}`)
-      : row('기간 수익률', s => pctSpan(s.ret), `단순보유 ${fmt(bh.ret, 1)}%`)) +
-    row('최대 낙폭 (MDD)', s => `<span class="neg">${fmt(s.mdd, 1)}%</span>`, `단순보유 ${fmt(bh.mdd, 1)}%`) +
-    row('완료 사이클 · 승률', s => `${s.cycles}회 · ${fmt(s.winRate)}%`, runs.map(x => `${x.name} 평균 ${fmt(x.r.stats.avgDays)}거래일`).join(' · ')) +
-    row('리버스 / 쿼터손절', s => `${s.reverses}회`, `평균 투입률 ${runs.map(x => fmt(x.r.stats.invested) + '%').join(' / ')}`);
+  const { runs, bh } = last, s0 = runs[0].r.stats, yrs = s0.years, longRun = yrs >= 1;
+  $('title').textContent = `${last.t}${NAMES[last.t] ? ' · ' + NAMES[last.t] : ''}`;
+  $('rangeNote').textContent = `${last.range} · ${fmt(yrs, 1)}년`;
+  const heroVal = s => longRun ? pctSpan(s.cagr) : pctSpan(s.ret);
+  const heroLabel = longRun ? '연평균 수익률' : '기간 수익률';
+  $('heroes').innerHTML = runs.map(x => `<div class="hero ${x.key}"><div class="tag">${x.name} · ${heroLabel}</div><div class="big num">${heroVal(x.r.stats)}</div>
+      <div class="sub num">최종 ${usd(x.r.stats.final)} · MDD ${fmt(x.r.stats.mdd, 1)}% · 승률 ${fmt(x.r.stats.winRate)}%</div></div>`).join('')
+    + `<div class="hero bh"><div class="tag">${last.t} 단순보유 · ${heroLabel}</div><div class="big num">${longRun ? pctSpan(bh.cagr) : pctSpan(bh.ret)}</div>
+      <div class="sub num">최종 ${usd(bh.final)} · MDD ${fmt(bh.mdd, 1)}%</div></div>`;
+  const rows = [
+    ['최종 자산', s => usd(s.final), usd(bh.final)],
+    ['총 수익률', s => pctSpan(s.ret), pctSpan(bh.ret)],
+    ['연평균 수익률 (CAGR)', s => longRun ? pctSpan(s.cagr) : '-', longRun ? pctSpan(bh.cagr) : '-'],
+    ['최대 낙폭 (MDD)', s => `<span class="neg">${fmt(s.mdd, 1)}%</span>`, `<span class="neg">${fmt(bh.mdd, 1)}%</span>`],
+    ['완료 사이클', s => `${s.cycles}회`, '-'],
+    ['사이클 승률', s => `${fmt(s.winRate)}%`, '-'],
+    ['평균 사이클 기간', s => `${fmt(s.avgDays)}거래일`, '-'],
+    ['리버스 / 쿼터손절', s => `${s.reverses}회`, '-'],
+    ['평균 투입률', s => `${fmt(s.invested)}%`, '100%']
+  ];
+  $('score').innerHTML = `<table><thead><tr><th class="l">지표</th>${runs.map(x => `<th class="c${x.key === 'v4' ? 4 : 22}">${x.name}</th>`).join('')}<th>단순보유</th></tr></thead><tbody>`
+    + rows.map(([l, f, b]) => `<tr><td class="l">${l}</td>${runs.map(x => `<td>${f(x.r.stats)}</td>`).join('')}<td>${b}</td></tr>`).join('') + '</tbody></table>';
   drawAll(); orders(); renderTabs(); table();
 }
 
-// ── 차트 공통 ──
+// ── 차트 ──
 function lineChart(svgId, series, o = {}) {
   const svg = $(svgId), box = svg.parentElement, tip = box.querySelector('.tip');
   const W = svg.clientWidth, H = svg.clientHeight; if (!W || !H) return;
-  const L = 58, R = 10, T = 8, B = 24, n = series[0].data.length;
+  const L = 56, R = 8, T = 8, B = 24, n = series[0].data.length;
   const f = v => o.log ? Math.log(Math.max(v, 1)) : v;
-  let vals = series.flatMap(s => s.data.map(e => f(e.v)));
+  const vals = series.flatMap(s => s.data.map(e => f(e.v)));
   let lo = o.lo != null ? o.lo : Math.min(...vals), hi = o.hi != null ? o.hi : Math.max(...vals);
   if (hi === lo) { hi += 1; lo -= 1; }
   const x = i => L + (n > 1 ? i / (n - 1) : 0) * (W - L - R), y = v => T + (1 - (f(v) - lo) / (hi - lo)) * (H - T - B);
@@ -344,16 +435,16 @@ function lineChart(svgId, series, o = {}) {
   let g = '';
   for (let k = 0; k <= 4; k++) {
     const fv = lo + (hi - lo) * k / 4, v = o.log ? Math.exp(fv) : fv, yy = T + (1 - k / 4) * (H - T - B);
-    g += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="${grid}"/><text x="${L - 6}" y="${yy + 4}" fill="${mute}" font-size="11" text-anchor="end">${o.fy ? o.fy(v) : fmt(v)}</text>`;
+    g += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="${grid}" ${k ? 'stroke-dasharray="2 4"' : ''}/><text x="${L - 8}" y="${yy + 4}" fill="${mute}" font-size="11" text-anchor="end">${o.fy ? o.fy(v) : fmt(v)}</text>`;
   }
   const d0 = series[0].data, ticks = W < 520 ? 2 : 5;
   for (let k = 0; k <= ticks; k++) { const i = Math.round((n - 1) * k / ticks); g += `<text x="${x(i)}" y="${H - 6}" fill="${mute}" font-size="11" text-anchor="${k === 0 ? 'start' : k === ticks ? 'end' : 'middle'}">${d0[i].d.slice(0, W < 520 ? 4 : 7)}</text>`; }
   let bands = '';
   for (const [a, b] of (o.bands || [])) bands += `<rect x="${x(a).toFixed(1)}" y="${T}" width="${Math.max(2, x(b) - x(a)).toFixed(1)}" height="${H - T - B}" fill="${css('--band')}"/>`;
   const path = s => s.data.map((e, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(e.v).toFixed(1)).join('');
-  const area = o.area ? `<path d="${path(series[0])}L${x(n - 1)} ${y(0)}L${x(0)} ${y(0)}Z" fill="${series[0].color}" opacity=".15"/>` : '';
-  svg.innerHTML = bands + g + area + series.slice().reverse().map(s => `<path d="${path(s)}" fill="none" stroke="${s.color}" stroke-width="${s.w || 1.6}" opacity="${s.op || 1}" stroke-linejoin="round"/>`).join('')
-    + (o.marks || []).map(m => `<circle cx="${x(m.i).toFixed(1)}" cy="${y(m.v).toFixed(1)}" r="3" fill="${m.c}" stroke="${css('--panel')}" stroke-width="1"/>`).join('')
+  const areas = (o.area ? series.slice(0, o.areaN || 1) : []).map(s => `<path d="${path(s)}L${x(n - 1)} ${y(o.areaBase != null ? o.areaBase : 0)}L${x(0)} ${y(o.areaBase != null ? o.areaBase : 0)}Z" fill="${s.color}" opacity=".10"/>`).join('');
+  svg.innerHTML = bands + g + areas + series.slice().reverse().map(s => `<path d="${path(s)}" fill="none" stroke="${s.color}" stroke-width="${s.w || 1.6}" opacity="${s.op || 1}" stroke-linejoin="round"${s.dash ? ` stroke-dasharray="${s.dash}"` : ''}/>`).join('')
+    + (o.marks || []).map(m => `<circle cx="${x(m.i).toFixed(1)}" cy="${y(m.v).toFixed(1)}" r="2.8" fill="${m.c}" stroke="${css('--panel')}" stroke-width="1"/>`).join('')
     + `<line class="hair" y1="${T}" y2="${H - B}" stroke="${mute}" stroke-dasharray="3 3" visibility="hidden"/>`;
   svg.onpointermove = ev => {
     const r = svg.getBoundingClientRect(), i = Math.max(0, Math.min(n - 1, Math.round((ev.clientX - r.left - L) / (W - L - R) * (n - 1))));
@@ -365,69 +456,68 @@ function lineChart(svgId, series, o = {}) {
   };
   svg.onpointerleave = () => { tip.hidden = true; const h = svg.querySelector('.hair'); if (h) h.setAttribute('visibility', 'hidden'); };
 }
-function reverseBands(eq, modeMatch) {
+function modeBands(eq, match) {
   const out = []; let s = -1;
-  eq.forEach((e, i) => { const m = modeMatch(e.m); if (m && s < 0) s = i; if (!m && s >= 0) { out.push([s, i - 1]); s = -1; } });
+  eq.forEach((e, i) => { const m = match(e.m); if (m && s < 0) s = i; if (!m && s >= 0) { out.push([s, i - 1]); s = -1; } });
   if (s >= 0) out.push([s, eq.length - 1]); return out;
 }
+let logScale = true;
 function drawAll() {
   if (!last) return;
-  const { runs, bh } = last, logScale = $('logScale') ? $('logScale').checked : true;
-  const ser = runs.map(x => ({ name: x.name, color: x.color, w: 2, data: x.r.equity, extra: i => `T ${fmt(x.r.equity[i].t, 2)}` }));
-  ser.push({ name: `${last.t} 단순보유`, color: css('--bh'), w: 1.3, op: .9, data: bh.equity });
-  const first = runs[0];
+  const { runs, bh } = last, first = runs[0];
+  const ser = runs.map(x => ({ name: x.name, color: x.color, w: 2.2, data: x.r.equity, extra: i => `T ${fmt(x.r.equity[i].t, 2)}` }));
+  ser.push({ name: `${last.t} 단순보유`, color: css('--bh'), w: 1.4, op: .85, dash: '4 3', data: bh.equity });
   const idx = new Map(first.r.equity.map((e, i) => [e.d, i]));
-  const marks = runs.flatMap(x => x.r.cycles.filter(c => c.ret != null && idx.has(c.end)).map(c => ({ i: idx.get(c.end), v: x.r.equity[idx.get(c.end)].v, c: c.pnl > 0 ? css('--good') : css('--bad') })));
+  const marks = runs.flatMap(x => x.r.cycles.filter(c => c.ret != null && idx.has(c.end)).map(c => ({ i: idx.get(c.end), v: x.r.equity[idx.get(c.end)].v, c: c.pnl > 0 ? x.color : css('--bad') })));
   lineChart('eq', ser, { log: logScale, fy: v => v >= 1e6 ? '$' + fmt(v / 1e6, 1) + 'M' : '$' + fmt(v / 1e3, v < 1e4 ? 1 : 0) + 'k', ft: v => usd(v),
-    bands: runs.length === 1 ? reverseBands(first.r.equity, m => m === '리버스' || m === '쿼터손절') : [], marks });
-  $('eqLegend').innerHTML = ser.map(s => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join('')
+    bands: runs.length === 1 ? modeBands(first.r.equity, m => m === '리버스' || m === '쿼터손절') : [], marks });
+  $('eqLegend').innerHTML = ser.map(s => `<span><i style="background:${s.color}${s.dash ? ';opacity:.8' : ''}"></i>${s.name}</span>`).join('')
     + (runs.length === 1 ? `<span><i class="band"></i>${first.key === 'v4' ? '리버스모드' : '쿼터손절'} 구간</span>` : '')
-    + `<span><span class="dot" style="background:var(--good)"></span>사이클 익절</span>`
     + `<label><input type="checkbox" id="logScale"${logScale ? ' checked' : ''}> 로그 스케일</label>`;
-  $('logScale').onchange = drawAll;
+  $('logScale').onchange = e => { logScale = e.target.checked; drawAll(); };
   const dd = arr => { let pk = 0; return arr.map(e => { pk = Math.max(pk, e.v); return { d: e.d, v: (e.v / pk - 1) * 100 }; }); };
-  const ddSer = runs.map(x => ({ name: x.name, color: x.color, w: 1.6, data: dd(x.r.equity) }));
-  ddSer.push({ name: '단순보유', color: css('--bh'), w: 1.1, op: .8, data: dd(bh.equity) });
-  const ddLo = Math.min(-5, ...ddSer.flatMap(s => s.data.map(e => e.v)));
-  lineChart('dd', ddSer, { lo: ddLo, hi: 0, fy: v => fmt(v) + '%', ft: v => fmt(v, 1) + '%', area: true });
+  const ddSer = runs.map(x => ({ name: x.name, color: x.color, w: 1.5, data: dd(x.r.equity) }));
+  ddSer.push({ name: '단순보유', color: css('--bh'), w: 1.1, op: .8, dash: '4 3', data: dd(bh.equity) });
+  lineChart('dd', ddSer, { lo: Math.min(-5, ...ddSer.flatMap(s => s.data.map(e => e.v))), hi: 0, fy: v => fmt(v) + '%', ft: v => fmt(v, 1) + '%', area: true, areaN: runs.length });
   const N = Math.max(...runs.map(x => x.r.params.splits));
-  lineChart('tc', runs.map(x => ({ name: x.name, color: x.color, w: 1.5, data: x.r.equity.map(e => ({ d: e.d, v: e.t })), extra: i => x.r.log[i].disp })),
+  lineChart('tc', runs.map(x => ({ name: x.name, color: x.color, w: 1.3, data: x.r.equity.map(e => ({ d: e.d, v: e.t })), extra: i => x.r.log[i].disp })),
     { lo: 0, hi: N, fy: v => fmt(v), ft: v => fmt(v, 2) });
 }
 new ResizeObserver(() => drawAll()).observe($('eq'));
 
-// ── 마지막 날 상태 / 다음 주문표 ──
+// ── 다음 주문표 ──
 function orders() {
   const ordRow = o => `<tr><td class="l">${o[2] || ''}</td><td>${typeof o[0] === 'number' ? '$' + fmt(o[0], 2) : o[0]}</td><td>${o[1]}</td></tr>`;
   $('orders').innerHTML = last.runs.map(x => {
-    const s = x.r.state;
-    const buys = s.buy.filter(o => o[1] > 0), sells = s.sell.filter(o => o[1] > 0);
-    return `<div><h3 class="c${x.key === 'v4' ? 4 : 22}">${x.name} <span class="badge">${s.date} 종가 $${fmt(s.close, 2)} 기준</span></h3>
-      <table><tbody>
-      <tr><td class="l">모드</td><td colspan="2">${s.mode}</td></tr>
-      <tr><td class="l">T</td><td colspan="2">${fmt(s.T, 4)} / ${x.r.params.splits}</td></tr>
-      <tr><td class="l">보유 · 평단</td><td colspan="2">${s.shares}주 · $${fmt(s.avg, 2)}</td></tr>
-      <tr><td class="l">잔금 · 1회 예산</td><td colspan="2">${usd(s.cash)} · ${usd(s.limit, 2)}</td></tr>
-      <tr><td class="l">별지점</td><td colspan="2">$${fmt(s.star, 2)}</td></tr>
-      </tbody></table>
-      <table style="margin-top:8px"><thead><tr><th class="l">다음 매수</th><th>가격</th><th>수량</th></tr></thead><tbody>${buys.map(ordRow).join('') || '<tr><td class="l" colspan="3">없음</td></tr>'}</tbody></table>
-      <table style="margin-top:8px"><thead><tr><th class="l">다음 매도</th><th>가격</th><th>수량</th></tr></thead><tbody>${sells.map(ordRow).join('') || '<tr><td class="l" colspan="3">없음</td></tr>'}</tbody></table></div>`;
+    const s = x.r.state, buys = s.buy.filter(o => o[1] > 0), sells = s.sell.filter(o => o[1] > 0);
+    return `<div class="ord ${x.key}">
+      <div class="top"><b class="c${x.key === 'v4' ? 4 : 22}">${x.name} · ${s.mode}</b><span>${s.date} 종가 $${fmt(s.close, 2)}</span></div>
+      <div class="facts num">
+        <div><small>T</small><b>${fmt(s.T, 2)}</b> <small style="display:inline">/ ${x.r.params.splits}</small></div>
+        <div><small>보유</small><b>${fmt(s.shares)}주</b></div>
+        <div><small>평단</small><b>$${fmt(s.avg, 2)}</b></div>
+        <div><small>잔금</small><b>${usd(s.cash)}</b></div>
+        <div><small>1회 예산</small><b>${usd(s.limit)}</b></div>
+        <div><small>별지점</small><b>$${fmt(s.star, 2)}</b></div>
+      </div>
+      <table><thead><tr><th class="l">매수 주문</th><th>가격</th><th>수량</th></tr></thead><tbody>${buys.map(ordRow).join('') || '<tr><td class="l" colspan="3">없음</td></tr>'}</tbody></table>
+      <table><thead><tr><th class="l">매도 주문</th><th>가격</th><th>수량</th></tr></thead><tbody>${sells.map(ordRow).join('') || '<tr><td class="l" colspan="3">없음</td></tr>'}</tbody></table>
+    </div>`;
   }).join('');
 }
 
 // ── 표 ──
 function renderTabs() {
-  const items = [['cycles', '사이클'], ['trades', '매매 내역'], ['log', '일별 로그'], ['history', '실행 기록 비교']];
+  const items = [['cycles', '사이클'], ['trades', '매매 내역'], ['log', '일별 로그'], ['history', '실행 기록']];
   const multi = last.runs.length > 1;
-  const tabs = items.flatMap(([k, l]) => k === 'history' || !multi ? [[k, l]] : last.runs.map(x => [`${k}:${x.key}`, `${l} ${x.name}`]));
+  const tabs = items.flatMap(([k, l]) => k === 'history' || !multi ? [[k, l]] : last.runs.map(x => [`${k}:${x.key}`, `${l} · ${x.name}`]));
   if (!tabs.some(t => t[0] === tab)) tab = tabs[0][0];
   $('tabs').innerHTML = tabs.map(([k, l]) => `<button type="button" data-t="${k}" class="${k === tab ? 'on' : ''}">${l}</button>`).join('');
   document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { tab = b.dataset.t; renderTabs(); table(); });
 }
 function table() {
   const [kind, key] = tab.split(':');
-  const run = last.runs.find(x => x.key === key) || last.runs[0];
-  const r = run.r;
+  const r = (last.runs.find(x => x.key === key) || last.runs[0]).r;
   let h = '';
   if (kind === 'cycles') {
     h = '<table><thead><tr><th class="l">시작</th><th class="l">종료</th><th>거래일</th><th>사이클 자금</th><th>손익</th><th>수익률</th><th>쿼터매도</th><th>리버스/손절</th></tr></thead><tbody>' +
@@ -439,7 +529,7 @@ function table() {
   } else if (kind === 'log') {
     const ol = l => l.filter(o => o[1] > 0).map(o => `${typeof o[0] === 'number' ? fmt(o[0], 2) : o[0]}×${o[1]}`).join(', ') || '-';
     h = '<table><thead><tr><th class="l">날짜</th><th>종가</th><th class="l">당일 체결</th><th class="l">모드</th><th>T</th><th>평단</th><th>보유</th><th>잔금</th><th>별지점</th><th class="l">다음 매수</th><th class="l">다음 매도</th></tr></thead><tbody>' +
-      r.log.slice(-600).reverse().map(x => `<tr><td class="l">${x.d}</td><td>${fmt(x.c, 2)}</td><td class="wrap">${x.fills || '-'}</td><td class="l">${x.disp}</td><td>${fmt(x.t, 2)}</td><td>${fmt(x.avg, 2)}</td><td>${x.hold}</td><td>${usd(x.cash)}</td><td>${fmt(x.star, 2)}</td><td class="wrap">${ol(x.buy)}</td><td class="wrap">${ol(x.sell)}</td></tr>`).join('') + '</tbody></table>'
+      r.log.slice(-600).reverse().map(x => `<tr><td class="l">${x.d}</td><td>${fmt(x.c, 2)}</td><td class="wrapc">${x.fills || '-'}</td><td class="l">${x.disp}</td><td>${fmt(x.t, 2)}</td><td>${fmt(x.avg, 2)}</td><td>${x.hold}</td><td>${usd(x.cash)}</td><td>${fmt(x.star, 2)}</td><td class="wrapc">${ol(x.buy)}</td><td class="wrapc">${ol(x.sell)}</td></tr>`).join('') + '</tbody></table>'
       + (r.log.length > 600 ? '<p class="note">최근 600거래일만 보여요.</p>' : '');
   } else {
     h = '<table><thead><tr><th class="l">종목</th><th class="l">기간</th><th class="l">전략 · 조건</th><th>CAGR</th><th>총 수익률</th><th>MDD</th><th>승률</th><th>단순보유 CAGR</th></tr></thead><tbody>' +
